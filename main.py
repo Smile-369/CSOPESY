@@ -55,13 +55,13 @@ def getWaitingTime(processes,waitingTime,n):
                 waitingTime[short] = 0
         t += 1
 
-def getTurnAroundTime(processes,waitingTime,turnAroundTime,n):
+def getCompletionTime(processes,startTime,completionTime,n):
     for i in range(n):
-        turnAroundTime[i] = processes[i][2] + waitingTime[i]
+        completionTime[i] = processes[i][2] + startTime[i]
 
 def getStartTime(processes,waitingTime,startTime,n):
     for i in range(n):
-        startTime[i] = (processes[i][1] + waitingTime[i])-1
+        startTime[i] = (processes[i][1] + waitingTime[i])
 
 #First Come, First Served 
 def fcfs_scheduling(processes):
@@ -159,11 +159,11 @@ def srtf_scheduling(processes):
     start_time=[0]*n
 
     getWaitingTime(processes,waiting_time,n)
-    getTurnAroundTime(processes,waiting_time,completion_time,n)
+   
 
     gantt_chart = []  # Array to store the Gantt chart
     getStartTime(processes,waiting_time,start_time,n)
-
+    getCompletionTime(processes,start_time,completion_time,n)
 
    
     average_waiting_time = sum(waiting_time) / len(waiting_time)
@@ -254,9 +254,9 @@ file_name = input("Enter the name of the input text file: ")
 input_data = process_input_from_file(file_name)
 
 if input_data:
-    x, y, z, processes = input_data
-    fcfs_scheduling(processes)
-    sjf_scheduling(processes)
+    x, n, q, processes = input_data
+    # fcfs_scheduling(processes)
+    # sjf_scheduling(processes)
     srtf_scheduling(processes)
-    round_robin_scheduling(processes, 2)
+    # round_robin_scheduling(processes, q)
 
