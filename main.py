@@ -24,6 +24,41 @@ def process_input_from_file(file_name):
         print(f"{file_name} not found.")
         return None
 
+
+def fcfs_scheduling(processes):
+    processes.sort(key=lambda x: x[1])  # Sort processes by arrival time
+    completion_time = [0] * len(processes)
+    waiting_time = [0] * len(processes)
+
+    gantt_chart = []  # Array to store the Gantt chart
+
+    completion_time[0] = processes[0][1] + processes[0][2]
+    waiting_time[0] = 0
+
+    gantt_chart.extend([processes[0][0]] * processes[0][2])
+
+    for i in range(1, len(processes)):
+        completion_time[i] = max(completion_time[i - 1], processes[i][1]) + processes[i][2]
+        waiting_time[i] = completion_time[i - 1] - processes[i][1]
+
+        gantt_chart.extend([processes[i][0]] * (processes[i][1] - completion_time[i - 1]))
+        gantt_chart.extend([processes[i][0]] * processes[i][2])
+
+    average_waiting_time = sum(waiting_time) / len(waiting_time)
+
+    print("\nFCFS Scheduling Results:")
+    for i in range(len(processes)):
+        print(f"P[{processes[i][0]}] start time: {completion_time[i] - processes[i][2]} end time: {completion_time[i]} | Waiting time: {waiting_time[i]}")
+
+    print("Average waiting time:", average_waiting_time)
+
+    print("\nGantt Chart:")
+    print("|", end="")
+    for item in gantt_chart:
+        print(f" P{item} |", end="")
+    print()
+
+
 def getWaitingTime(processes,waitingTime,n):
     rt = [0] * n
     for i in range(n):
@@ -203,5 +238,4 @@ input_data = process_input_from_file(file_name)
 if input_data:
     x, y, z, processes = input_data
     srtf_scheduling(processes)
-    fcfs_scheduling(processes)
-    round_robin_scheduling(processes, 2)
+
