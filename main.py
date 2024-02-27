@@ -96,7 +96,7 @@ def getTurnAroundTime(processes,waitingTime,turnAroundTime,n):
 
 def getStartTime(processes,waitingTime,startTime,n):
     for i in range(n):
-        startTime[i] = processes[i][1] + waitingTime[i]
+        startTime[i] = (processes[i][1] + waitingTime[i])-1
 
         
 def srtf_scheduling(processes):
@@ -118,9 +118,8 @@ def srtf_scheduling(processes):
     
     print("\nSRTF Scheduling Results:")
     for i in range(n):
-        print(f"P[{processes[i][0]}] start time: {completion_time[i] - processes[i][2]} end time: {completion_time[i]} | Waiting time: {waiting_time[i]}")
+        print(f"P[{processes[i][0]}] start time: {start_time[i]} end time: {completion_time[i]} | Waiting time: {waiting_time[i]}")
 
-    sort_indeces=np.argsort(start_time)
     zipped_processes= sorted(zip(start_time,processes))
     sorted_processes=[element for _, element in zipped_processes]
 
