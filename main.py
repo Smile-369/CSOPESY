@@ -58,6 +58,51 @@ def fcfs_scheduling(processes):
         print(f" P{item} |", end="")
     print()
 
+def sjf_scheduling(processes):
+    # Create a copy of the processes list
+    sorted_processes = sorted(processes, key=lambda x: x[1])
+
+    completion_time = [0] * len(sorted_processes)
+    waiting_time = [0] * len(sorted_processes)
+    gantt_chart = []  # Array to store the Gantt chart
+
+    current_time = 0  # Initialize the current time with 0
+
+    while sorted_processes:
+        eligible_processes = [p for p in sorted_processes if p[1] <= current_time]
+
+        if not eligible_processes:
+            current_time += 1
+            continue  # Continue to the next time unit if there are no eligible processes
+
+        shortest_job = min(eligible_processes, key=lambda x: x[2])
+        index = sorted_processes.index(shortest_job)
+
+        if current_time < sorted_processes[index][1]:
+            # If there's an idle time before starting the next process, add it to the Gantt chart
+            gantt_chart.extend([0] * (sorted_processes[index][1] - current_time))
+            current_time = sorted_processes[index][1]
+
+        gantt_chart.extend([sorted_processes[index][0]] * sorted_processes[index][2])  # Add time for the current process
+        current_time += sorted_processes[index][2]
+        completion_time[index] = current_time
+        waiting_time[index] = current_time - sorted_processes[index][1]
+
+        sorted_processes.pop(index)
+
+    average_waiting_time = sum(waiting_time) / len(waiting_time)
+
+    print("\nShortest Job First (SJF) Scheduling (Non-preemptive) Results:")
+    for i in range(len(completion_time)):
+        print(f"P[{i}] start time: {completion_time[i] - processes[i][2]} end time: {completion_time[i]} | Waiting time: {waiting_time[i]}")
+
+    print("Average waiting time:", average_waiting_time)
+
+    print("\nGantt Chart:")
+    print("|", end="")
+    for item in gantt_chart:
+        print(f" P{item} |", end="")
+    print()
 
 def getWaitingTime(processes,waitingTime,n):
     rt = [0] * n
@@ -140,5 +185,15 @@ input_data = process_input_from_file(file_name)
 
 if input_data:
     x, y, z, processes = input_data
-    srtf_scheduling(processes)
+    
+    if x == 0:
+        fcfs_scheduling(processes)
+    elif x == 1:
+        sjf_scheduling(processes)
+    elif x == 2:
+        srtf_scheduling(processes)
+    elif x == 3:
+        print("dumasssss")
+    else:
+        print("Invalid value for X.")
 
