@@ -256,6 +256,7 @@ input_data = process_input_from_file(file_name)
 if input_data:
     x, y, z, processes = input_data
     fcfs_scheduling(processes)
+    sjf_scheduling(processes)
     srtf_scheduling(processes)
     round_robin_scheduling(processes, 2)
 
