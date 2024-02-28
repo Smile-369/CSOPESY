@@ -2,23 +2,21 @@ import numpy as np
 def process_input_from_file(file_name):
     try:
         with open(file_name, 'r') as file:
-            #first line
-            x, y, z = map(int, file.readline().split())
+            x, n, q = map(int, file.readline().split())
 
             if x != 3:
-                z = 1
+                q = 1  # Ignoring time quantum if not Round Robin
 
-            #specs constraints
-            if not (0 <= x <= 3 and 3 <= y <= 100 and (1 <= z <= 100 or x != 3)):
+            if not (0 <= x <= 3 and 3 <= n <= 100 and (1 <= q <= 100 or x != 3)):
                 print("Invalid input.")
                 return None
 
             processes = []
-            for _ in range(y):
+            for _ in range(n):
                 a, b, c = map(int, file.readline().split())
                 processes.append((a, b, c))
 
-            return x, y, z, processes
+            return x, n, q, processes
 
     except FileNotFoundError:
         print(f"{file_name} not found.")
@@ -212,75 +210,52 @@ def srtf_scheduling(processes):
     print()
 
 #Round Robin
-def round_robin_scheduling(processes, quantum): 
+def round_robin_scheduling(processes, time_quantum):
     n = len(processes)
-    waiting_time = [0] * n
-    turnaround_time = [0] * n
-    completion_time = [0] * n
-    time =   0
-    processes_executed =   0
+    total_time_counted = 0
+    total_wait_time = 0  # Updated to track total wait time for all processes
+    remaining_times = [process[2] for process in processes]
 
-    # Sort processes by arrival time
-    processes = sorted(processes, key=lambda x: x[1])
-
-    # Initialize remaining burst times
-    remaining_burst_times = [process[2] for process in processes]
-
-    while processes_executed < n:
+    while True:
+        done = True
         for i in range(n):
-            if processes[i][1] <= time:  # Check if process has arrived
-                if remaining_burst_times[i] <= quantum:  # Check if process can be executed in the current quantum
-                    time += remaining_burst_times[i]
-                    waiting_time[i] = time - processes[i][1] - processes[i][2]
-                    remaining_burst_times[i] =  0
-                    processes_executed +=   1
+            if remaining_times[i] > 0:
+                done = False
+                if remaining_times[i] > time_quantum:
+                    total_time_counted += time_quantum
+                    remaining_times[i] -= time_quantum
                 else:
-                    # Process needs more time than quantum
-                    time += quantum
-                    waiting_time[i] = time - processes[i][1] - quantum
-                    remaining_burst_times[i] -= quantum
-            else:
-                # Process has not arrived yet
-                break
+                    total_time_counted += remaining_times[i]
+                    total_wait_time += total_time_counted - processes[i][1] - processes[i][2]
+                    remaining_times[i] = 0
 
-        # Check if any process has not been executed yet
-        if processes_executed < n:
-            time +=   1  # Increment time to allow other processes to execute
+        if done:
+            break
 
-    # Calculate turnaround time
-    for i in range(n):
-        turnaround_time[i] = waiting_time[i] + processes[i][2]
+    avg_wait_time = total_wait_time / n  # Calculate average waiting time correctly
 
-    # Print scheduling results
     print("\nRound Robin Scheduling Results:")
     for i in range(n):
-        print(f"P[{processes[i][0]}] start time: {time - processes[i][2]} end time: {time} | Waiting time: {waiting_time[i]} Turnaround time: {turnaround_time[i]}")
+        start_time = max(processes[i][1], i * time_quantum)
+        end_time = min(start_time + min(time_quantum, processes[i][2]), total_time_counted)
+        waiting_time = max(start_time - processes[i][1], 0)
+        print(f"P[{processes[i][0]}] start time: {start_time} end time: {end_time} | Waiting time: {waiting_time}")
+    print("Average waiting time:", round(avg_wait_time, 2))
 
-    # Calculate average waiting time and turnaround time
-    avg_waiting_time = sum(waiting_time) / n
-    avg_turnaround_time = sum(turnaround_time) / n
-    print(f"Average waiting time: {avg_waiting_time}")
-    print(f"Average turnaround time: {avg_turnaround_time}")
+if __name__ == '__main__':
+    file_name = input("Enter the name of the input text file: ")
+    input_data = process_input_from_file(file_name)
 
-    gantt_chart = []
-    for i in range(n):
-        gantt_chart.extend([processes[i][0]] * (time - processes[i][2] - completion_time[i]))
-        gantt_chart.extend([processes[i][0]] * (processes[i][2] - remaining_burst_times[i]))
-
-    print("\nGantt Chart:")
-    print("|", end="")
-    for item in gantt_chart:
-        print(f" P{item} |", end="")
-    print()
-
-
-file_name = input("Enter the name of the input text file: ")
-input_data = process_input_from_file(file_name)
-
-if input_data:
-    x, n, q, processes = input_data
-    # fcfs_scheduling(processes)
-    # sjf_scheduling(processes)
-    srtf_scheduling(processes)
-    # round_robin_scheduling(processes, q)
-
+    if input_data:
+        x, n, q, processes = input_data
+        
+        if x == 0:
+            fcfs_scheduling(processes)
+        elif x == 1:
+            sjf_scheduling(processes)
+        elif x == 2:
+            srtf_scheduling(processes)
+        elif x == 3:
+            round_robin_scheduling(processes, q)
+        else:
+            print("Unsupported scheduling algorithm.")
