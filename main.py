@@ -102,46 +102,53 @@ def sjf_scheduling(processes):
     completion_time = [0] * len(sorted_processes)
     waiting_time = [0] * len(sorted_processes)
     gantt_chart = []  # Array to store the Gantt chart
-    start_time = [0] * (len(sorted_processes) + 1)
+    start_times = [0] * len(sorted_processes)
+    turn_around = [0] * len(sorted_processes)
+    burst_time = [0] * len(sorted_processes)
 
-    current_time = 0  # Initialize the current time with 0
+    current_time = sorted_processes[0][1]  # Initialize the current time with the start time of the first process
 
     if sorted_processes[0][0] == 0:
 
         while sorted_processes:
+            start_time = current_time
             eligible_processes = [p for p in sorted_processes if p[1] <= current_time]
+            print(eligible_processes)
 
             if not eligible_processes:
                 current_time += 1
                 continue
 
             shortest_job = min(eligible_processes, key=lambda x: x[2])
+            index = sorted_processes.index(shortest_job)
+
+            if current_time < sorted_processes[index][1]:
+                gantt_chart.extend([0] * (sorted_processes[index][1] - current_time))
+                current_time = sorted_processes[index][1]
+
+            gantt_chart.extend([sorted_processes[index][0]] * sorted_processes[index][2])
+            current_time += sorted_processes[index][2]
+
             pro_index = shortest_job[0]
-            index = sorted_processes.index(shortest_job)
-
-            if current_time < sorted_processes[index][1]:
-                gantt_chart.extend([0] * (sorted_processes[index][1] - current_time))
-                current_time = sorted_processes[index][1]
-
-            gantt_chart.extend([sorted_processes[index][0]] * sorted_processes[index][2])
-            start_time[shortest_job[0]] = current_time  # Update start time for the next process
-            waiting_time[pro_index] = start_time[shortest_job[0]] - processes[pro_index][1]
-            current_time += sorted_processes[index][2]
-            print(index)
             completion_time[pro_index] = current_time
+            turn_around[pro_index] = current_time - sorted_processes[index][1]
+            burst_time[pro_index] = sorted_processes[index][2]
+            waiting_time[pro_index] = turn_around[pro_index] - burst_time[pro_index]
+            start_times[pro_index] = start_time
 
             sorted_processes.pop(index)
+    
     else:
-
         while sorted_processes:
+            start_time = current_time
             eligible_processes = [p for p in sorted_processes if p[1] <= current_time]
+            print(eligible_processes)
 
             if not eligible_processes:
                 current_time += 1
                 continue
 
             shortest_job = min(eligible_processes, key=lambda x: x[2])
-            pro_index = shortest_job[0] - 1
             index = sorted_processes.index(shortest_job)
 
             if current_time < sorted_processes[index][1]:
@@ -149,20 +156,22 @@ def sjf_scheduling(processes):
                 current_time = sorted_processes[index][1]
 
             gantt_chart.extend([sorted_processes[index][0]] * sorted_processes[index][2])
-            start_time[shortest_job[0]] = current_time  # Update start time for the next process
-            waiting_time[pro_index] = start_time[shortest_job[0]] - processes[pro_index][1]
             current_time += sorted_processes[index][2]
-            print(index)
+
+            pro_index = shortest_job[0]-1
             completion_time[pro_index] = current_time
+            turn_around[pro_index] = current_time - sorted_processes[index][1]
+            burst_time[pro_index] = sorted_processes[index][2]
+            waiting_time[pro_index] = turn_around[pro_index] - burst_time[pro_index]
+            start_times[pro_index] = start_time
 
             sorted_processes.pop(index)
-        
 
     average_waiting_time = sum(waiting_time) / len(waiting_time)
 
     print("\nShortest Job First (SJF) Scheduling (Non-preemptive) Results:")
     for i in range(len(completion_time)):
-        print(f"P[{processes[i][0]}] start time: {start_time[processes[i][0]]} end time: {completion_time[i]} | Waiting time: {waiting_time[i]}")
+        print(f"P[{processes[i][0]}] start time: {start_times[i]} end time: {completion_time[i]} | Waiting time: {waiting_time[i]}")
 
     print("Average waiting time:", average_waiting_time)
 
