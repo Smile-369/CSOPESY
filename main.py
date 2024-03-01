@@ -219,37 +219,108 @@ def srtf_scheduling(processes):
     print()
 
 #Round Robin
-def round_robin_scheduling(processes, time_quantum):
-    n = len(processes)
-    total_time_counted = 0
-    total_wait_time = 0  # Updated to track total wait time for all processes
-    remaining_times = [process[2] for process in processes]
-
-    while True:
-        done = True
-        for i in range(n):
-            if remaining_times[i] > 0:
-                done = False
-                if remaining_times[i] > time_quantum:
-                    total_time_counted += time_quantum
-                    remaining_times[i] -= time_quantum
-                else:
-                    total_time_counted += remaining_times[i]
-                    total_wait_time += total_time_counted - processes[i][1] - processes[i][2]
-                    remaining_times[i] = 0
-
-        if done:
+def queueUpdation(queue, timer, arrival, n, maxProccessIndex):
+    zeroIndex = -1
+    for i in range(n):
+        if queue[i] == 0:
+            zeroIndex = i
             break
 
-    avg_wait_time = total_wait_time / n  # Calculate average waiting time correctly
+    if zeroIndex == -1:
+        return
+    if maxProccessIndex < n:
+        queue[zeroIndex] = maxProccessIndex + 1
+
+
+def checkNewArrival(timer, arrival, n, maxProccessIndex, queue):
+    if timer < arrival[n-1]:
+        newArrival = False
+        for j in range(maxProccessIndex+1, n):
+            if arrival[j] <= timer:
+                if maxProccessIndex < j:
+                    maxProccessIndex = j
+                    newArrival = True
+
+        # adds the index of the arriving process(if any)
+        if newArrival:
+            queueUpdation(queue, timer, arrival, n, maxProccessIndex)
+
+
+def queueMaintainence(queue, n):
+    for i in range(n-1):
+        if queue[i+1] != 0:
+            queue[i], queue[i+1] = queue[i+1], queue[i]
+
+
+def round_robin_scheduling(processes, tq):
+    n = len(processes)
+    avgWait, avgTT = 0, 0
+
+    arrival = [p[1] for p in processes]
+    burst = [p[2] for p in processes]
+    temp_burst = burst.copy()
+    wait = [0] * n
+    turn = [0] * n
+    complete = [False] * n
+    queue = [0] * n
+    maxProccessIndex = 0
+    timer = 0
+
+    while True:
+        flag = True
+        for i in range(n):
+            if temp_burst[i] != 0:
+                flag = False
+                break
+
+        if flag:
+            break
+
+        for i in range(n):
+            if queue[i] != 0:
+                ctr = 0
+                while ctr < tq and temp_burst[queue[0]-1] > 0:
+                    temp_burst[queue[0]-1] -= 1
+                    timer += 1
+                    ctr += 1
+
+                    # Updating the ready queue until all the processes arrive
+                    checkNewArrival(timer, arrival, n, maxProccessIndex, queue)
+
+                if temp_burst[queue[0]-1] == 0 and not complete[queue[0]-1]:
+                    # turn currently stores exit times
+                    turn[queue[0]-1] = timer
+                    complete[queue[0]-1] = True
+
+                # checks whether or not CPU is idle
+                idle = True
+                for k in range(n):
+                    if queue[k] != 0 and not complete[queue[k]-1]:
+                        idle = False
+                        break
+
+                if idle:
+                    timer += 1
+                    checkNewArrival(timer, arrival, n, maxProccessIndex, queue)
+
+                # Maintaining the entries of processes after each preemption in the ready Queue
+                queueMaintainence(queue, n)
+
+    for i in range(n):
+        turn[i] = turn[i] - arrival[i]
+        wait[i] = turn[i] - burst[i]
 
     print("\nRound Robin Scheduling Results:")
     for i in range(n):
-        start_time = max(processes[i][1], i * time_quantum)
-        end_time = min(start_time + min(time_quantum, processes[i][2]), total_time_counted)
-        waiting_time = max(start_time - processes[i][1], 0)
-        print(f"P[{processes[i][0]}] start time: {start_time} end time: {end_time} | Waiting time: {waiting_time}")
-    print("Average waiting time:", round(avg_wait_time, 2))
+        print(f"P[{processes[i][0]}] start time: {arrival[i]} end time: {turn[i] + arrival[i]} | Waiting time: {wait[i]}")
+
+    for i in range(n):
+        avgWait += wait[i]
+        avgTT += turn[i]
+
+    print("\nAverage wait time : ", (avgWait//n))
+    print("\nAverage Turn Around Time : ", (avgTT//n))
+
 
 if __name__ == '__main__':
     file_name = input("Enter the name of the input text file: ")
@@ -268,3 +339,4 @@ if __name__ == '__main__':
             round_robin_scheduling(processes, q)
         else:
             print("Unsupported scheduling algorithm.")
+
