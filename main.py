@@ -21,7 +21,7 @@ def process_input_from_file(file_name):
     except FileNotFoundError:
         print(f"{file_name} not found.")
         return None
-
+## gets the waiting time for SRTF
 def getWaitingTime(processes,waitingTime,n):
     rt = [0] * n
     for i in range(n):
@@ -52,11 +52,11 @@ def getWaitingTime(processes,waitingTime,n):
             if (waitingTime[short] < 0):
                 waitingTime[short] = 0
         t += 1
-
+## gets the completion time for SRTF
 def getCompletionTime(processes,startTime,completionTime,n):
     for i in range(n):
         completionTime[i] = processes[i][2] + startTime[i]
-
+## gets the start time for SRTF
 def getStartTime(processes,waitingTime,startTime,n):
     for i in range(n):
         startTime[i] = (processes[i][1] + waitingTime[i])
