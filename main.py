@@ -1,4 +1,4 @@
-import numpy as np
+
 def process_input_from_file(file_name):
     try:
         with open(file_name, 'r') as file:

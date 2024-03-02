@@ -1,0 +1,1 @@
+To run and compile open a terminal located in the directory of main.py and run using python ./main.py
