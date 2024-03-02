@@ -258,23 +258,6 @@ def round_robin_scheduling(processes, quantum):
         print(f" P{item} |", end="")
     print()
 
-if __name__ == '__main__':
-    file_name = input("Enter the name of the input text file: ")
-    input_data = process_input_from_file(file_name)
-
-    if input_data:
-        x, n, q, processes = input_data
-        
-        if x == 0:
-            fcfs_scheduling(processes)
-        elif x == 1:
-            sjf_scheduling(processes)
-        elif x == 2:
-            srtf_scheduling(processes)
-        elif x == 3:
-            round_robin_scheduling(processes, q)
-        else:
-            print("Unsupported scheduling algorithm.")
 
 
 if __name__ == '__main__':
